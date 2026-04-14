@@ -9,6 +9,7 @@ LOAD=$(awk '{print $1", "$2", "$3}' /proc/loadavg)
 MEM=$(free -h | awk '/^Mem:/  {printf "%s used of %s", $3, $2}')
 SWAP=$(free -h | awk '/^Swap:/ {printf "%s used of %s", $3, $2}')
 CPU=$(top -bn1 | awk '/^%Cpu/ {printf "%.1f%%", 100 - $8}')
+CLAUDE=$(CC_CACHE_TTL=30 "$HOME/.local/bin/claude_show_usage.sh" 2>/dev/null || echo "[unavailable]")
 
 notify-send -u low -t 10000 "System Info" \
-    "CPU:  ${CPU}\nRAM:  ${MEM}\nSwap: ${SWAP}\nLoad: ${LOAD}"
+    "CPU:    ${CPU}\nRAM:    ${MEM}\nSwap:   ${SWAP}\nLoad:   ${LOAD}\n\nClaude: ${CLAUDE}"
