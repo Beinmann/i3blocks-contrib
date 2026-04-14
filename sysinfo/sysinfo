@@ -11,5 +11,25 @@ SWAP=$(free -h | awk '/^Swap:/ {printf "%s used of %s", $3, $2}')
 CPU=$(top -bn1 | awk '/^%Cpu/ {printf "%.1f%%", 100 - $8}')
 CLAUDE=$(CC_CACHE_TTL=30 "$HOME/.local/bin/claude_show_usage.sh" 2>/dev/null || echo "[unavailable]")
 
+# Battery time remaining
+ACPI=$(acpi -b 2>/dev/null | head -1)
+if [[ -n "$ACPI" ]]; then
+    if echo "$ACPI" | grep -q "Full"; then
+        BAT_LINE="Battery full"
+    elif echo "$ACPI" | grep -q "Charging"; then
+        TIME=$(echo "$ACPI" | grep -oP '\d+:\d+(?=:\d+ until)')
+        [[ -n "$TIME" ]] && BAT_LINE="Battery charging, full in ~${TIME}" || BAT_LINE="Battery charging"
+    elif echo "$ACPI" | grep -q "Discharging"; then
+        TIME=$(echo "$ACPI" | grep -oP '\d+:\d+(?=:\d+ remaining)')
+        [[ -n "$TIME" ]] && BAT_LINE="Battery will last ~${TIME}" || BAT_LINE="Battery discharging"
+    else
+        BAT_LINE=""
+    fi
+else
+    BAT_LINE=""
+fi
+
+BAT_SECTION="${BAT_LINE:+\n${BAT_LINE}}"
+
 notify-send -u low -t 10000 "System Info" \
-    "CPU:    ${CPU}\nRAM:    ${MEM}\nSwap:   ${SWAP}\nLoad:   ${LOAD}\n\nClaude: ${CLAUDE}"
+    "CPU:    ${CPU}\nRAM:    ${MEM}\nSwap:   ${SWAP}\nLoad:   ${LOAD}${BAT_SECTION}\n\nClaude: ${CLAUDE}"
