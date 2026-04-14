@@ -1,0 +1,14 @@
+#!/bin/bash
+# i3blocks script: show system info notification on left-click
+
+echo "Info"
+
+[ "$BLOCK_BUTTON" != "1" ] && exit 0
+
+LOAD=$(awk '{print $1", "$2", "$3}' /proc/loadavg)
+MEM=$(free -h | awk '/^Mem:/  {printf "%s used of %s", $3, $2}')
+SWAP=$(free -h | awk '/^Swap:/ {printf "%s used of %s", $3, $2}')
+CPU=$(top -bn1 | awk '/^%Cpu/ {printf "%.1f%%", 100 - $8}')
+
+notify-send -u low -t 10000 "System Info" \
+    "CPU:  ${CPU}\nRAM:  ${MEM}\nSwap: ${SWAP}\nLoad: ${LOAD}"
